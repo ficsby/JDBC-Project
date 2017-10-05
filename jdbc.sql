@@ -1,3 +1,8 @@
+/*DROP TABLE WritingGroup
+  DROP TABLE Book
+  DROP TABLE Publisher
+*/
+
 CREATE TABLE WritingGroup(
     GroupName varchar(20) NOT NULL,
     HeadWriter varchar(20), 
@@ -5,11 +10,11 @@ CREATE TABLE WritingGroup(
     Subject varchar(20));
 
 CREATE TABLE Book(
-    GroupName varchar(20), NOT NULL,
+    GroupName varchar(20) NOT NULL,
     BookTitle varchar(20) NOT NULL,
     PublisherName varchar(20) NOT NULL,
     YearPublished integer, 
-    NumberPages integer));
+    NumberPages integer);
 
 CREATE TABLE Publisher(
     PublisherName varchar(20) NOT NULL, 
@@ -19,28 +24,28 @@ CREATE TABLE Publisher(
 
 /* PRIMARY KEYS */
 
-ALTER TABLE WritingGroup;
-    ADD CONSTRAINT WritingGroup_pk;
+ALTER TABLE WritingGroup
+    ADD CONSTRAINT WritingGroup_pk
     PRIMARY KEY(GroupName);
 
 ALTER TABLE Book
-    ADD CONSTRAINT Book_pk;
+    ADD CONSTRAINT Book_pk
     PRIMARY KEY(GroupName, BookTitle);
 
 ALTER TABLE Publisher
-    ADD CONSTRAINT Publisher_pk;
+    ADD CONSTRAINT Publisher_pk
     PRIMARY KEY(PublisherName);
 
 /* FOREIGN KEYS */
 
 ALTER TABLE Book
-    ADD CONSTRAINT WG_Book_fk;
-    FOREIGN KEY(GroupName);
+    ADD CONSTRAINT WG_Book_fk
+    FOREIGN KEY(GroupName)
     REFERENCES WritingGroup(GroupName);
 
 ALTER TABLE Book
-    ADD CONSTRAINT PUB_Book_fk;
-    FOREIGN KEY(PublisherName);
+    ADD CONSTRAINT PUB_Book_fk
+    FOREIGN KEY(PublisherName)
     REFERENCES Publisher(PublisherName);
 
 /* Writing Group Data
