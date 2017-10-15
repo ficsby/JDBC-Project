@@ -15,7 +15,7 @@ public class Controller {
 
     // JDBC driver name and database URL
     static final String JDBC_DRIVER = "org.apache.derby.jdbc.ClientDriver";
-    static String DB_URL = "jdbc:derby://localhost:1527/"; 
+    static String DB_URL = "jdbc:derby://localhost:1527/";
     /**
      * @param args the command line arguments
      */
@@ -38,9 +38,11 @@ public class Controller {
         //If your database has no credentials, you can update this code to
         //remove that from the connection string.
         Scanner in = new Scanner(System.in);
-        String displayFormat="%-5s%-15s%-15s%-15s\n";
+        
         Connection conn = null; //initialize the connection
         Statement stmt = null;  //initialize the statement that we're using
+        PreparedStatement myStmt = null;
+        String displayFormat="%-5s%-15s%-15s%-15s\n";
         try {
             //STEP 2: Register JDBC driver
             Class.forName("org.apache.derby.jdbc.ClientDriver");
@@ -50,84 +52,84 @@ public class Controller {
             conn = DriverManager.getConnection(DB_URL);
 
             //STEP 4: Execute a query
-            System.out.println("Creating statement...");
-            stmt = conn.createStatement();
-            PreparedStatement myStmt;
-            int userChoice = menu();
+            String sql = "";
             ResultSet rs = null;
-            switch(userChoice){
-                case 1: //Christine
+            switch(menu()){
+                // List all writing groups
+                case 1: sql = "SELECT * FROM WritingGroup";
+                        rs = stmt.executeQuery(sql);
                     break;
-                case 2: //Francis
-                    //SELECT * FROM WritingGroups WHERE GroupName = ' (userInput) '
-                    myStmt = conn.prepareStatement("SELECT * FROM WritingGroup WHERE GroupName = ?");
-                    String userGroup = in.nextLine();
-                    myStmt.setString(1, userGroup);
-                    rs = myStmt.executeQuery();
-                    displayFormat="%-15s%-15s%-4d%-15s\n";
+                // List all the data for a specified group
+                case 2: 
                     break;
-                case 3: //Christine
+                // List all publishers
+                case 3: sql = "SELECT * FROM Publisher";
+                        rs = stmt.executeQuery(sql);
                     break;
-                case 4: //Francis
-                    myStmt = conn.prepareStatement("SELECT * FROM Publisher WHERE PublisherName = ?");
-                    String publisherName = in.nextLine();
-                    myStmt.setString(1, publisherName);
-                    rs = myStmt.executeQuery();
-                    displayFormat="%-15s%-15s%-15s%-15s\n";
+                // List all the data for a specified pubisher"
+                case 4:
                     break;
-                case 5: //Christine
+                // List all book titles
+                case 5: sql = "SELECT BookTitle FROM Book";
+                        rs = stmt.executeQuery(sql);
                     break;
-                case 6: //Francis
-                    myStmt = conn.prepareStatement("SELECT * FROM (Book NATURAL JOIN WritingGroup)  NATURAL JOIN Publisher WHERE BookTitle = ? ");
-                    String bookName = in.nextLine();
-                    myStmt.setString(1, bookName);
-                    rs = myStmt.executeQuery();
-                    displayFormat="%-15s%-15s%-15s%-15s\n";
+                // List all the data for a specified book
+                case 6: 
                     break;
-                case 7: //Christine
-                    System.out.println("What is the group name?");
-                    String groupName = in.nextLine();
-                    System.out.println("What is your book title?");
-                    String bookTitle = in.nextLine();
-                    System.out.println("What is the publisher name?");
-                    publisherName = in.nextLine();
-                    System.out.println("What year was your book published?");
-                    int yearPublished = checkInt();
-                    System.out.println("How many pages is your book?");
-                    int numPages = checkInt();
-                    myStmt = conn.prepareStatement("INSERT INTO Book (GroupName, BookTitle, PublisherName, YearPublished, NumberPages)"
-                            + "VALUES(?,?,?,?,?)");
-                    
-                    myStmt.setString(1, groupName);
-                    myStmt.setString(2,bookTitle);
-                    myStmt.setString(3,publisherName);
-                    myStmt.setInt(4, yearPublished);
-                    myStmt.setInt(5, numPages);
-                    displayFormat="%-15s%-4d%-15ds%\n";
+                // Insert a new book
+                case 7: System.out.println("What is your book title?");
+                        String bookTitle = in.nextLine();
+                        System.out.println("What year was your book published?");
+                        int yearPublished = checkInt();
+                        System.out.println("How many pages is your book?");
+                        int numPages = checkInt();
+                        myStmt = conn.prepareStatement("INSERT INTO Book (BookTitle, YearPublished, NumberPages)"
+                                + "VALUES(?,?,?)");
+                        
+                        myStmt.setString(1,bookTitle);
+                        myStmt.setInt(2, yearPublished);
+                        myStmt.setInt(3, numPages);
+                        displayFormat="%-15s%-4d%-15ds%\n";
                     break;
-                case 8: //Francis
-                    
+                // Insert a new publisher
+                case 8: System.out.println("What is the publisher name?");
+                        String publisherName = in.nextLine();
+                        System.out.println("What is the publisher's address?");
+                        String publisherAddress = in.nextLine();
+                        System.out.println("What is the publisher's phone number? Enter in (###)###-#### format.");
+                        String publisherPhone = in.nextLine();
+                        System.out.println("What is the publisher's email?");
+                        String publisherEmail = in.nextLine();
+                        myStmt = conn.prepareStatement("INSERT INTO Publisher (PublisherName, PublisherAddress, PublisherPhone, PublisherEmail)"
+                                + "VALUES(?,?,?,?)");
+                        myStmt.setString(1, publisherName);
+                        myStmt.setString(2, publisherAddress);
+                        myStmt.setString(3, publisherPhone);
+                        myStmt.setString(4, publisherEmail);
+                        displayFormat="%-20s%-40s%-20s%-20s%\n";
                     break;
-                case 9: //Christine
+                // Remove a book
+                case 9: System.out.println("What is the book title?");
+                        bookTitle = in.nextLine();
+                        System.out.println("What is the book's writing group name?");
+                        String groupName = in.nextLine();
+                        myStmt = conn.prepareStatement("DELETE * FROM Book"
+                                + "NATURAL JOIN WritingGroup"
+                                + "WHERE bookTitle = ? AND groupName = ?");
+                        myStmt.setString(1, bookTitle);
+                        myStmt.setString(2, groupName);
+                        displayFormat="%-20s%-20s%\n";
                     break;
-            }
-            String sql;
-            //STEP 5: Extract data from result set
-            System.out.printf(displayFormat, "ID", "First Name", "Last Name", "Phone #");
-            while (rs.next()) {
-                //Retrieve by column name
-                String id = rs.getString("au_id");
-                String phone = rs.getString("phone");
-                String first = rs.getString("au_fname");
-                String last = rs.getString("au_lname");
-
-                //Display values
-                System.out.printf(displayFormat,
-                        dispNull(id), dispNull(first), dispNull(last), dispNull(phone));
+                // Exit
+                case 10: System.out.println("Goodbye!");
+                         System.exit(0);
+                    break;
+                
             }
             //STEP 6: Clean-up environment
             rs.close();
             stmt.close();
+            myStmt.close();
             conn.close();
         } catch (SQLException se) {
             //Handle errors for JDBC
@@ -151,21 +153,27 @@ public class Controller {
                 se.printStackTrace();
             }//end finally try
         }//end try
-        System.out.println("Goodbye!");
     }
     
     public static int menu(){
+        Scanner in = new Scanner(System.in);
+        System.out.println("Welcome to BOOKGROUPS! What would you like to do?");
         System.out.println("1. List all writing groups");
-        System.out.println("2. List all the data for a group specified by the user");
+        System.out.println("2. List all the data for a specified group");
         System.out.println("3. List all publishers");
-        System.out.println("4. List all the data for a publisher specified by the user");
+        System.out.println("4. List all the data for a specified pubisher");
         System.out.println("5. List all book titles");
-        System.out.println("6. List all the data for book specified by the user");
+        System.out.println("6. List all the data for a specified book");
         System.out.println("7. Insert a new book");
-        System.out.println("8. Insert a new publisher and update all books published by one publisher to be published by the new publisher");
-        System.out.println("9. Remove a book specified by the user");
-        
-        return checkInt();
+        System.out.println("8. Insert a new publisher");
+        System.out.println("9. Remove a book");
+        System.out.println("10. Exit");
+        int userChoice = in.nextInt();
+        while(userChoice < 1 || userChoice > 10){
+           System.out.println("Invalid option. Please try again.");
+           userChoice = in.nextInt();
+        }
+        return userChoice;
     }
     
     public static int checkInt(){
